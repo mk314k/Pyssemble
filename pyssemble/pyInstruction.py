@@ -1,4 +1,4 @@
-from register import RegIndex, RegisterSet
+from register import RegIndex, RegisterSet, Counter
 from memory import Memory
 
 x0 = zero = RegIndex(0)
@@ -36,51 +36,67 @@ x31 = t6 = RegIndex(31)
 
 class pyInstruction:
     regs = RegisterSet()
-    pc = 0
+    ic = Counter()
+    pc = Counter()
     instruction_memory = Memory()
     data_memory = Memory()
     def __repr__(self):
         return ''
-    def addInstruction(self, instruction):
-        
+    def execute(self):
+        while (self.pc.val <self.ic.val):
+            self.instruction_memory[self.pc.val].execute()
+        pass
 
-class add(pyInstruction):
-    def __init__(self, rd, rs1, rs2):
-        self.regs[rd] = self.regs[rs1] + self.regs[rs2]
+class RegInstruction(pyInstruction):
+    def __init__(self, *args):
+        if len(args)!=3:
+            raise Exception
+        self.rd, self.rs1, self.rs2 = args
+        self.instruction_memory[self.ic.val] = self
+        self.ic.step()
+    def execute(self):
+        self.regs[self.rd] = self.func(self.regs[self.rs1], self.regs[self.rs2])
+        self.pc.step()
 
-class sub(pyInstruction):
-    def __init__(self, rd, rs1, rs2):
-        self.regs[rd] = self.regs[rs1] - self.regs[rs2]
+class RegImmInstruction(RegInstruction):
+    def execute(self):
+        self.regs[self.rd] = self.func(self.regs[self.rs1], self.rs2)
+        self.pc.step()
 
-class or_(pyInstruction):
-    def __init__(self, rd, rs1, rs2):
-        self.regs[rd] = self.regs[rs1] | self.regs[rs2]
+class add(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 + arg2
 
-class and_(pyInstruction):
-    def __init__(self, rd, rs1, rs2):
-        self.regs[rd] = self.regs[rs1] & self.regs[rs2]
+class sub(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 - arg2
 
-class xor(pyInstruction):
-    def __init__(self, rd, rs1, rs2):
-        self.regs[rd] = self.regs[rs1] ^ self.regs[rs2]
+class or_(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 | arg2
+
+class and_(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 & arg2
+
+class xor(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 ^ arg2
+
+class addi(RegImmInstruction, add):
+    pass
+
+class ori(RegImmInstruction, or_):
+    pass
+
+class andi(RegImmInstruction, and_):
+    pass
+
+class xori(RegImmInstruction, xor):
+    pass
 
 class li(pyInstruction):
-    def __init__(self, rd, constant):
-        self.regs[rd] = constant
-
-class addi(pyInstruction):
-    def __init__(self, rd, rs1, constant):
-        self.regs[rd] = self.regs[rs1] + constant
-
-class ori(pyInstruction):
-    def __init__(self, rd, rs1, constant):
-        self.regs[rd] = self.regs[rs1] | constant
-
-class andi(pyInstruction):
-    def __init__(self, rd, rs1, constant):
-        self.regs[rd] = self.regs[rs1] & constant
-
-class xori(pyInstruction):
-    def __init__(self, rd, rs1, constant):
-        self.regs[rd] = self.regs[rs1] ^ constant
-
+    def __init__(self, *args):
+        if len(args)!=2:
+            raise Exception
+        self.rd, self.val = args
+        self.instruction_memory[self.ic.val] = self
+        self.ic.step()
+    def execute(self):
+        self.regs[self.rd] = self.val
+        self.pc.step()
