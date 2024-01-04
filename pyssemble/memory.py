@@ -1,4 +1,3 @@
-
 class Memory:
     def __init__(self, memory_size=100):
         self.memory = {}
