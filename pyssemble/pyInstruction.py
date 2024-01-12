@@ -100,3 +100,33 @@ class li(pyInstruction):
     def execute(self):
         self.regs[self.rd] = self.val
         self.pc.step()
+
+class eor(RegInstruction):
+    func = lambda _, arg1, arg2: 0 if arg1 == arg2 else 1
+
+class lsl(RegInstruction):
+    func = lambda _, __, arg, amt: arg << amt
+
+class rsl(RegInstruction):
+    func = lambda _, __, arg, amt: arg >> amt
+
+class asr(RegInstruction):
+    def func(_, arg, amt):
+        if arg >= 0:
+            return arg >> amt
+        else:
+            
+class mul(RegInstruction):
+    func = lambda _, arg1, arg2: arg1 * arg2 #CHECK
+
+# class smull(RegInstruction) #INCOMPLETE 
+    
+# class umull(RegInstruction) 
+
+# class B.cond(RegInstruction) 
+    
+
+    
+
+
+
