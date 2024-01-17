@@ -9,7 +9,7 @@ Returns:
     _type_: _description_
 """
 import re
-from .exception import RegisterIndexError
+from ..exception import RegisterIndexError
 
 reg_map = {
         'zero': 'x0',
