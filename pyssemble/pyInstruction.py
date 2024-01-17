@@ -1,102 +1,390 @@
-from register import RegIndex, RegisterSet, Counter
-from memory import Memory
+"""
+_summary_
 
-x0 = zero = RegIndex(0)
-x1 = ra = RegIndex(1)
-x2 = sp = RegIndex(2)
-x3 = gp = RegIndex(3)
-x4 = tp = RegIndex(4)
-x5 = t0 = RegIndex(5)
-x6 = t1 = RegIndex(6)
-x7 = t2 = RegIndex(7)
-x8 = s0 = RegIndex(8)
-x9 = s1 = RegIndex(9)
-x10 = a0 = RegIndex(10)
-x11 = a1 = RegIndex(11)
-x12 = a2 = RegIndex(12)
-x13 = a3 = RegIndex(13)
-x14 = a4 = RegIndex(14)
-x15 = a5 = RegIndex(15)
-x16 = a6 = RegIndex(16)
-x17 = a7 = RegIndex(17)
-x18 = s2 = RegIndex(18)
-x19 = s3 = RegIndex(19)
-x20 = s4 = RegIndex(20)
-x21 = s5 = RegIndex(21)
-x22 = s6 = RegIndex(22)
-x23 = s7 = RegIndex(23)
-x24 = s8 = RegIndex(24)
-x25 = s9 = RegIndex(25)
-x26 = s10 = RegIndex(26)
-x27 = s11 = RegIndex(27)
-x28 = t3 = RegIndex(28)
-x29 = t4 = RegIndex(29)
-x30 = t5 = RegIndex(30)
-x31 = t6 = RegIndex(31)
+Raises:
+    Exception: _description_
+    Exception: _description_
 
-class pyInstruction:
-    regs = RegisterSet()
-    ic = Counter()
-    pc = Counter()
-    instruction_memory = Memory()
-    data_memory = Memory()
+Returns:
+    _type_: _description_
+"""
+# pylint: disable=C3001  # Ignore lambda assignment
+from typing import Type
+from .memory import MemContent
+from .assembler import Assembler
+from .exception import PyAssembleException
+
+
+
+
+class AssemblyInstruction(MemContent):
+    """
+    _summary_
+
+    Returns:
+        _type_: _description_
+    """
+    def __init__(self, reg1 = None, reg2 = None, reg3 = None):
+        self.reg1 = reg1
+        self.reg2 = reg2
+        self.reg3 = reg3
+        self.func = lambda *args: None
+    def binary_rep(self):
+        return ""
+    def num_value(self):
+        return 0
+    def hex_rep(self):
+        return ""
     def __repr__(self):
         return ''
     def execute(self):
-        while (self.pc.val <self.ic.val):
-            self.instruction_memory[self.pc.val].execute()
-        pass
+        """
+        _summary_
+        """
 
-class RegInstruction(pyInstruction):
+
+class RegInstruction(AssemblyInstruction):
+    """
+    _summary_
+
+    Args:
+        AssemblyInstruction (_type_): _description_
+    """
     def __init__(self, *args):
         if len(args)!=3:
-            raise Exception
+            raise PyAssembleException
         self.rd, self.rs1, self.rs2 = args
-        self.instruction_memory[self.ic.val] = self
-        self.ic.step()
     def execute(self):
-        self.regs[self.rd] = self.func(self.regs[self.rs1], self.regs[self.rs2])
-        self.pc.step()
+        Assembler.registers[self.rd] = self.func(
+            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
+        )
 
 class RegImmInstruction(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
     def execute(self):
-        self.regs[self.rd] = self.func(self.regs[self.rs1], self.rs2)
-        self.pc.step()
+        Assembler.registers[self.rd] = self.func(
+            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
+        )
+class BranchInstruction(RegInstruction):
+    """
+    _summary_
 
-class add(RegInstruction):
-    func = lambda _, arg1, arg2: arg1 + arg2
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    def execute(self):
+        Assembler.registers[self.rd] = self.func(
+            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
+        )
 
-class sub(RegInstruction):
-    func = lambda _, arg1, arg2: arg1 - arg2
+class MemInstruction(RegInstruction):
+    """
+    _summary_
 
-class or_(RegInstruction):
-    func = lambda _, arg1, arg2: arg1 | arg2
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    def execute(self):
+        Assembler.registers[self.rd] = self.func(
+            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
+        )
 
-class and_(RegInstruction):
-    func = lambda _, arg1, arg2: arg1 & arg2
+class Add(RegInstruction):
+    """
+    _summary_
 
-class xor(RegInstruction):
-    func = lambda _, arg1, arg2: arg1 ^ arg2
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 + arg2
 
-class addi(RegImmInstruction, add):
-    pass
+class Sub(RegInstruction):
+    """
+    _summary_
 
-class ori(RegImmInstruction, or_):
-    pass
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 - arg2
 
-class andi(RegImmInstruction, and_):
-    pass
+class Or(RegInstruction):
+    """
+    _summary_
 
-class xori(RegImmInstruction, xor):
-    pass
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 | arg2
 
-class li(pyInstruction):
+class And(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 & arg2
+
+class Xor(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 ^ arg2
+
+class Srl(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 ^ arg2
+
+class Sra(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 ^ arg2
+
+class Sll(RegInstruction):
+    """
+    _summary_
+
+    Args:
+        RegInstruction (_type_): _description_
+    """
+    func = lambda arg1, arg2: arg1 ^ arg2
+
+class Addi(RegImmInstruction, Add):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        add (_type_): _description_
+    """
+
+
+class Ori(RegImmInstruction, Or):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        or_ (_type_): _description_
+    """
+
+
+class Andi(RegImmInstruction, And):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        and_ (_type_): _description_
+    """
+
+
+class Xori(RegImmInstruction, Xor):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        xor (_type_): _description_
+    """
+
+class Slli(RegImmInstruction, Sll):
+    """
+    Args:
+        RegImmInstruction (_type_): _description_
+        Sll (_type_): _description_
+
+    Raises:
+        PyAssembleException: _description_
+    """
+class Srai(RegImmInstruction, Sra):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        Sra (_type_): _description_
+
+    Raises:
+        PyAssembleException: _description_
+    """
+
+class Srli(RegImmInstruction, Srl):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+        Srl (_type_): _description_
+
+    Raises:
+        PyAssembleException: _description_
+    """
+class Slti(RegImmInstruction):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+
+    Raises:
+        PyAssembleException: _description_
+    """
+class Sltiu(RegImmInstruction):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+
+    Raises:
+        PyAssembleException: _description_
+    """
+
+class Li(RegImmInstruction):
+    """
+    _summary_
+
+    Args:
+        AssemblyInstruction (_type_): _description_
+    """
     def __init__(self, *args):
         if len(args)!=2:
-            raise Exception
+            raise PyAssembleException
         self.rd, self.val = args
-        self.instruction_memory[self.ic.val] = self
-        self.ic.step()
     def execute(self):
-        self.regs[self.rd] = self.val
-        self.pc.step()
+        Assembler.registers[self.rd] = self.val
+
+class Lui(RegImmInstruction):
+    """
+    _summary_
+
+    Args:
+        RegImmInstruction (_type_): _description_
+    """
+
+class Beq(BranchInstruction):
+    """
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+
+class Bne(BranchInstruction):
+    """
+    _summary_
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+class Blt(BranchInstruction):
+    """
+    _summary_
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+class Bge(BranchInstruction):
+    """
+    _summary_
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+class Bltu(BranchInstruction):
+    """
+    _summary_
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+class Bgeu(BranchInstruction):
+    """
+    _summary_
+
+    Args:
+        BranchInstruction (_type_): _description_
+    """
+
+class Lw(MemInstruction):
+    """
+    _summary_
+
+    Args:
+        MemInstruction (_type_): _description_
+    """
+
+class Sw(MemInstruction):
+    """
+    _summary_
+
+    Args:
+        MemInstruction (_type_): _description_
+    """
+class Ret(AssemblyInstruction):
+    """
+    _summary_
+
+    Args:
+        AssemblyInstruction (_type_): _description_
+    """
+
+
+instructions = {
+    # Reg operations
+    'add': Add,
+    'sub': Sub,
+    'and': And,
+    'or': Or,
+    'xor': Xor,
+    'sll': Sll,
+    'srl': Srl,
+    'sra': Sra,
+
+    # Reg Immediate Operations
+    'addi': Addi,
+    'andi': Andi,
+    'ori': Ori,
+    'xori': Xori,
+    'slti': Slti,
+    'sltiu': Sltiu,
+    'slli': Slli,
+    'srli': Srli,
+    'srai': Srai,
+
+    # Branch
+    'beq': Beq,
+    'bne': Bne,
+    'blt': Blt,
+    'bge': Bge,
+    'bltu': Bltu,
+    'bgeu': Bgeu,
+
+    # Mem Operations
+    'lw': Lw,
+    'sw': Sw,
+
+    # Reg Loading Operations
+    'li': Li,
+    'lui': Lui,
+
+    # Jump operations
+    'ret': Ret
+}  # type: Dict[str, Type[AssemblyInstruction]]
