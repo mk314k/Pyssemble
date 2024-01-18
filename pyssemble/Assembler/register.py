@@ -1,9 +1,15 @@
-from exception import RegisterIndexError
-import re
+"""
+_summary_
 
-def reg_valid(reg):
-    pattern = r'^x([0-9]|[1-2]\d|3[0-1])$'
-    return bool(re.match(pattern, reg))
+Raises:
+    RegisterIndexError: _description_
+    RegisterIndexError: _description_
+
+Returns:
+    _type_: _description_
+"""
+import re
+from ..exception import RegisterIndexError
 
 reg_map = {
         'zero': 'x0',
@@ -40,22 +46,61 @@ reg_map = {
         't6': 'x31'
     }
 
+def reg_valid(reg:str)->bool:
+    """
+    _summary_
+
+    Args:
+        reg (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    pattern = r'^x([0-9]|[1-2]\d|3[0-1])$'
+    return bool(re.match(pattern, reg)) or (reg in reg_map)
+
+
+
 class RegIndex:
+    """
+    _summary_
+    """
     def __init__(self, index):
         if isinstance(index, int) and 0<=index<32:
             self.index = index
         else:
             raise RegisterIndexError
 class Counter:
+    """
+    _summary_
+    """
     def __init__(self, val=0):
-        self.val=0
+        self.val=val
     def step(self):
+        """
+        _summary_
+        """
         self.val += 4
 
 class RegisterSet:
+    """
+    _summary_
+    """
     def __init__(self):
         self.registers = [0]*32
     def reg_to_index(self, reg):
+        """
+        _summary_
+
+        Args:
+            reg (_type_): _description_
+
+        Raises:
+            RegisterIndexError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         if isinstance(reg, RegIndex):
             return reg.index
         if reg_valid(reg):
