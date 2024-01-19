@@ -24,7 +24,7 @@ class Assembler:
     data_memory = Memory()
     inst_memory = Memory()
     pc = Counter()
-    def execute(self, addr = 540):
+    def execute(addr = 540): # pylint: disable=no-self-argument
         """
         Execute instructions starting from the specified address.
 

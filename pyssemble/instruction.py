@@ -32,9 +32,6 @@ class AssemblyInstruction(MemContent):
     def value(self)->int:
         return int(self.bin, 2)
 
-    def __repr__(self)->str:
-        return self.hex
-
     def execute(self):
         """
         Execute the instruction.
@@ -137,7 +134,7 @@ class Add(RegInstruction):
     Addition instruction.
     """
     funct3 = "000"
-    func = lambda arg1, arg2: arg1 + arg2
+    func = lambda _, arg1, arg2: arg1 + arg2
 
 class Sub(RegInstruction):
     """
@@ -145,35 +142,35 @@ class Sub(RegInstruction):
     """
     funct3 = "000"
     funct7 = "0100000"
-    func = lambda arg1, arg2: arg1 - arg2
+    func = lambda _, arg1, arg2: arg1 - arg2
 
 class Or(RegInstruction):
     """
     Bitwise OR instruction.
     """
     funct3 = "110"
-    func = lambda arg1, arg2: arg1 | arg2
+    func = lambda _, arg1, arg2: arg1 | arg2
 
 class And(RegInstruction):
     """
     Bitwise AND instruction.
     """
     funct3 = "111"
-    func = lambda arg1, arg2: arg1 & arg2
+    func = lambda _, arg1, arg2: arg1 & arg2
 
 class Xor(RegInstruction):
     """
     Bitwise XOR instruction.
     """
     funct3 = "100"
-    func = lambda arg1, arg2: arg1 ^ arg2
+    func = lambda _, arg1, arg2: arg1 ^ arg2
 
 class Srl(RegInstruction):
     """
     Shift Right Logical instruction.
     """
     funct3 = "101"
-    func = lambda arg1, arg2: arg1 >> (arg2 & 0b11111)
+    func = lambda _, arg1, arg2: arg1 >> (arg2 & 0b11111)
 
 class Sra(RegInstruction):
     """
@@ -181,14 +178,14 @@ class Sra(RegInstruction):
     """
     funct3 = "101"
     funct7 = "0100000"
-    func = lambda arg1, arg2: arg1 ^ arg2
+    func = lambda _, arg1, arg2: arg1 ^ arg2
 
 class Sll(RegInstruction):
     """
     Shift Left Logical instruction.
     """
     funct3 = "001"
-    func = lambda arg1, arg2: arg1 << (arg2 & 0b11111)
+    func = lambda _, arg1, arg2: arg1 << (arg2 & 0b11111)
 
 #-----------------------------------------------------------------------
 # Register Immediate Instructions
@@ -283,19 +280,19 @@ class Bne(BranchInstruction):
     """
     Branch if Not Equal instruction.
     """
-    func = lambda arg1, arg2: arg1 != arg2
+    func = lambda _, arg1, arg2: arg1 != arg2
 
 class Blt(BranchInstruction):
     """
     Branch if Less Than instruction.
     """
-    func = lambda arg1, arg2: arg1 < arg2
+    func = lambda _, arg1, arg2: arg1 < arg2
 
 class Bge(BranchInstruction):
     """
     Branch if Greater Than or Equal instruction.
     """
-    func = lambda arg1, arg2: arg1 >= arg2
+    func = lambda _, arg1, arg2: arg1 >= arg2
 
 class Bltu(BranchInstruction):
     """

@@ -42,6 +42,9 @@ class MemContent:
         """
         return hex(self.value)
 
+    def __repr__(self)->str:
+        return self.hex
+
     @property
     def value(self) -> int:
         """
@@ -145,3 +148,6 @@ class Memory:
 
     def __setitem__(self, address: int, value: MemContent) -> None:
         self.memory[address] = value
+
+    def __repr__(self)->str:
+        return self.memory.__repr__() + f" with head at {self.head}"
