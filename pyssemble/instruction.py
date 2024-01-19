@@ -1,16 +1,11 @@
 """
-_summary_
-
-Raises:
-    Exception: _description_
-    Exception: _description_
-
-Returns:
-    _type_: _description_
+Author: mk314k
+This file contains all the rv32base instructions for Assembly.
+Motivated from MIT 6.004 Computation Structures class isa reference handout.
 """
 # pylint: disable=C3001  # Ignore lambda assignment
 from typing import Type, Dict
-from .Assembler.memory import MemContent
+from .Assembler.memory import MemContent, Data
 from .Assembler.assembler import Assembler, AssemblerReg
 
 
@@ -321,14 +316,14 @@ class Lw(MemInstruction):
     Load Word instruction.
     """
     def execute(self):
-        self.reg1.value = Assembler.data_memory[self.reg2.value + self.reg_num]
+        self.reg1.value = Assembler.data_memory[self.reg2.value + self.reg_num].value
 
 class Sw(MemInstruction):
     """
     Store Word instruction.
     """
     def execute(self):
-        Assembler.data_memory[self.reg2.value + self.reg_num] = self.reg1.value
+        Assembler.data_memory[self.reg2.value + self.reg_num] = Data(self.reg1.value)
 
 #-----------------------------------------------------------------------
 # Jump Instructions
