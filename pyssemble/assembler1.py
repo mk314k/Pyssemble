@@ -1,64 +1,62 @@
 """
-_summary_
-
-Raises:
-    Exception: _description_
-
-Returns:
-    _type_: _description_
+This document is still under development, it is supposed to help
+with finding syntax errors while writing Assembly code itself.
 """
-from .memory import Memory
-from .register import *
+# pylint: disable=C3001  # Ignore lambda assignment
+from .Assembler.register import reg_valid
 
 class AssemblyGrammar:
-    is_reg = lambda index: lambda args : reg_valid(args[index]) or args[index] in reg_map
-    is_reg_all = lambda args: all([reg_valid(arg) or arg in reg_map for arg in args])
+    """
+    _summary_
+    """
+    is_reg = lambda index: lambda args : reg_valid(args[index])
+    is_reg_all = lambda args: all([reg_valid(arg) for arg in args])
     arg_length = lambda length: lambda args: len(args) == length
 
 class InstructionSet:
+    """
+    _summary_
+    """
     def __init__(self, ):
         self.instructions = {}
         self.grammar = {}
     def add_instruction(self, identifier, grammar, function):
+        """
+        _summary_
+
+        Args:
+            identifier (_type_): _description_
+            grammar (_type_): _description_
+            function (_type_): _description_
+        """
         self.instructions[identifier] = function
         self.grammar[identifier] = grammar
-    def process_grammar(self, id, arguments):
+    def process_grammar(self, arguments):
+        """
+        _summary_
+
+        Args:
+            id (_type_): _description_
+            arguments (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         return all(
             [
                 rule(arguments) for rule in self.grammar[id]
             ]
         )
     def apply_function(self):
-        pass
-    def execute(self, id, arguments):
-        pass
+        """
+        _summary_
+        """
 
-class Assembler:
-    def __init__(self)->None:
-        self.registers = RegisterSet()
-        self.memory = Memory()
-        pass
-    def expand_memory(self, new_memory_size):
-        pass
-    def reset_memory(self):
-        pass
-    def reset_register(self):
-        pass
-    def process_code(self, code):
-        # lines = code.split('\n')
-        # instructions = []; labels = {}
-        # for index, line in enumerate(lines):
-        #     if line.strip():
-        #         if line[-1] == ':':
-        #             labels[line[:-1]] = index
-        #         elif line == 'ret':
-        #             pass
-        #         instruction = line.split()
-        #         id = instruction[0]
-        #         args = instruction[1:]
-        #         if inst.process_grammar(id, args):
-        #             pass
-        #         else:
-        #             raise Exception
-        # return inst
-        pass
+    def execute(self, arguments):
+        """
+        _summary_
+
+        Args:
+            id (_type_): _description_
+            arguments (_type_): _description_
+        """

@@ -60,34 +60,37 @@ def reg_valid(reg:str)->bool:
     return bool(re.match(pattern, reg)) or (reg in reg_map)
 
 
-
-class RegIndex:
-    """
-    _summary_
-    """
-    def __init__(self, index):
-        if isinstance(index, int) and 0<=index<32:
-            self.index = index
-        else:
-            raise RegisterIndexError
 class Counter:
     """
     _summary_
     """
     def __init__(self, val=0):
-        self.val=val
+        self.val = val
+
+    def __call__(self):
+        return self.val
+
     def step(self):
         """
         _summary_
         """
         self.val += 4
 
+    def jump(self, val:int):
+        """
+        _summary_
+
+        Args:
+            val (int): _description_
+        """
+        self.val = val
+
 class RegisterSet:
     """
     _summary_
     """
     def __init__(self):
-        self.registers = [0]*32
+        self.__registers = [0]*32
     def reg_to_index(self, reg):
         """
         _summary_
@@ -101,18 +104,23 @@ class RegisterSet:
         Returns:
             _type_: _description_
         """
-        if isinstance(reg, RegIndex):
-            return reg.index
-        if reg_valid(reg):
-            index = int(reg[1:])
-        elif reg in reg_map:
+        if reg in reg_map:
             index = int(reg_map[reg][1:])
+        elif reg_valid(reg):
+            index = int(reg[1:])
         else:
             raise RegisterIndexError
         return index
-    def __getitem__(self, reg):
-        index = self.reg_to_index(reg)
-        return self.registers[index]
-    def __setitem__(self,reg ,value):
-        index = self.reg_to_index(reg)
-        self.registers[index] = value
+    def __getitem__(self, index):
+        index = index if isinstance(index, int) else self.reg_to_index(index)
+        return self.__registers[index]
+
+    def __setitem__(self, index, value):
+        index = index if isinstance(index, int) else self.reg_to_index(index)
+        if not isinstance(value, int):
+            raise TypeError("Value must be an integer")
+
+        if value < 0 or value > 0xFFFFFFFF:
+            raise ValueError("Value must be a 32-bit integer")
+
+        self.__registers[index] = value

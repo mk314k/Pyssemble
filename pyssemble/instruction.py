@@ -9,218 +9,229 @@ Returns:
     _type_: _description_
 """
 # pylint: disable=C3001  # Ignore lambda assignment
-from typing import Type
-from .memory import MemContent
-from .assembler import Assembler
-from .exception import PyAssembleException
-
-
+from typing import Type, Dict
+from .Assembler.memory import MemContent
+from .Assembler.assembler import Assembler, AssemblerReg
 
 
 class AssemblyInstruction(MemContent):
     """
-    _summary_
+    Base class for assembly instructions.
 
-    Returns:
-        _type_: _description_
+    Attributes:
+        reg1: The first register.
+        reg2: The second register.
+        reg_num: The register or immediate number.
+        func: main function the instruction implements.
     """
-    def __init__(self, reg1 = None, reg2 = None, reg3 = None):
+    func = lambda *args: None
+    funct7 = ""
+    funct3 = ""
+    def __init__(self, reg1 = None, reg2 = None, reg_num = None):
         self.reg1 = reg1
         self.reg2 = reg2
-        self.reg3 = reg3
-        self.func = lambda *args: None
-    def binary_rep(self):
-        return ""
-    def num_value(self):
-        return 0
-    def hex_rep(self):
-        return ""
-    def __repr__(self):
-        return ''
+        self.reg_num = reg_num
+        Assembler.inst_memory.push(self)
+
+    @property
+    def value(self)->int:
+        return int(self.bin, 2)
+
+    def __repr__(self)->str:
+        return self.hex
+
     def execute(self):
         """
-        _summary_
+        Execute the instruction.
+
+        Raises:
+            NotImplementedError: If the function is not implemented.
+            It is implemented differently for instructions
         """
+        raise NotImplementedError
 
 
 class RegInstruction(AssemblyInstruction):
     """
-    _summary_
-
-    Args:
-        AssemblyInstruction (_type_): _description_
+    Class for register instructions.
     """
-    def __init__(self, *args):
-        if len(args)!=3:
-            raise PyAssembleException
-        self.rd, self.rs1, self.rs2 = args
+    opcode = "0110011"
+    funct7 = "0000000"
+    def __init__(self, rd:AssemblerReg, rs1:AssemblerReg, rs2:AssemblerReg):
+        """
+        Initialize a RegInstruction object.
+
+        Args:
+            rd: Destination register.
+            rs1: Source register 1.
+            rs2: Source register 2.
+        """
+        super().__init__(rd, rs1, rs2)
+
+    @property
+    def bin(self)->str:
+        reg = f"{self.reg_num.bin}{self.reg2.bin}{self.funct3}{self.reg1.bin}"
+        return f"{self.funct7}{reg}{self.opcode}"
+
     def execute(self):
-        Assembler.registers[self.rd] = self.func(
-            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
-        )
+        self.reg1.value = self.func(self.reg2.value, self.reg_num.value)
 
-class RegImmInstruction(RegInstruction):
-    """
-    _summary_
 
-    Args:
-        RegInstruction (_type_): _description_
+class RegImmInstruction(AssemblyInstruction):
     """
+    Class for register immediate instructions.
+    """
+    opcode = "0010011"
+    funct7 = "0000000"
+    def __init__(self, rd:AssemblerReg, rs1:AssemblerReg, rval:int):
+        """
+        Initialize a RegImmInstruction object.
+
+        Args:
+            rd: Destination register.
+            rs1: Source register 1.
+            rval: Immediate value.
+        """
+        super().__init__(rd, rs1, rval)
+
+    @property
+    def bin(self)->str:
+        pass
+
     def execute(self):
-        Assembler.registers[self.rd] = self.func(
-            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
-        )
-class BranchInstruction(RegInstruction):
-    """
-    _summary_
+        self.reg1.value = self.func(self.reg2.value, self.reg_num)
 
-    Args:
-        RegInstruction (_type_): _description_
+class BranchInstruction(RegImmInstruction):
     """
+    Class for branch instructions.
+    It has same initialization structure as ImmInstruction
+    label can be considered immediate value
+    """
+    @property
+    def bin(self)->str:
+        pass
     def execute(self):
-        Assembler.registers[self.rd] = self.func(
-            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
-        )
+        if self.func(self.reg1.value, self.reg2.value):
+            Assembler.pc.jump(self.reg_num)
 
-class MemInstruction(RegInstruction):
+class MemInstruction(AssemblyInstruction):
     """
-    _summary_
+    Class for memory instructions.
+    """
+    def __init__(self, rd:AssemblerReg, offset:int, rs1:AssemblerReg):
+        """
+        Initialize a MemInstruction object.
 
-    Args:
-        RegInstruction (_type_): _description_
-    """
+        Args:
+            rd: Destination register.
+            offset: Memory offset.
+            rs1: Source register.
+        """
+        super().__init__(rd, rs1, offset)
+    @property
+    def bin(self)->str:
+        pass
     def execute(self):
-        Assembler.registers[self.rd] = self.func(
-            Assembler.registers[self.rs1], Assembler.registers[self.rs2]
-        )
+        raise NotImplementedError
 
+#-----------------------------------------------------------------------
+# Register Instructions
+#-----------------------------------------------------------------------
 class Add(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Addition instruction.
     """
+    funct3 = "000"
     func = lambda arg1, arg2: arg1 + arg2
 
 class Sub(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Subtraction instruction.
     """
+    funct3 = "000"
+    funct7 = "0100000"
     func = lambda arg1, arg2: arg1 - arg2
 
 class Or(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Bitwise OR instruction.
     """
+    funct3 = "110"
     func = lambda arg1, arg2: arg1 | arg2
 
 class And(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Bitwise AND instruction.
     """
+    funct3 = "111"
     func = lambda arg1, arg2: arg1 & arg2
 
 class Xor(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Bitwise XOR instruction.
     """
+    funct3 = "100"
     func = lambda arg1, arg2: arg1 ^ arg2
 
 class Srl(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Shift Right Logical instruction.
     """
-    func = lambda arg1, arg2: arg1 ^ arg2
+    funct3 = "101"
+    func = lambda arg1, arg2: arg1 >> (arg2 & 0b11111)
 
 class Sra(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Shift Right Arithmetic instruction.
     """
+    funct3 = "101"
+    funct7 = "0100000"
     func = lambda arg1, arg2: arg1 ^ arg2
 
 class Sll(RegInstruction):
     """
-    _summary_
-
-    Args:
-        RegInstruction (_type_): _description_
+    Shift Left Logical instruction.
     """
-    func = lambda arg1, arg2: arg1 ^ arg2
+    funct3 = "001"
+    func = lambda arg1, arg2: arg1 << (arg2 & 0b11111)
+
+#-----------------------------------------------------------------------
+# Register Immediate Instructions
+#-----------------------------------------------------------------------
 
 class Addi(RegImmInstruction, Add):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        add (_type_): _description_
+    Addition with immediate instruction.
     """
 
 
 class Ori(RegImmInstruction, Or):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        or_ (_type_): _description_
+    Bitwise OR with immediate instruction.
     """
 
 
 class Andi(RegImmInstruction, And):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        and_ (_type_): _description_
+    Bitwise AND with immediate instruction.
     """
 
 
 class Xori(RegImmInstruction, Xor):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        xor (_type_): _description_
+    Bitwise XOR with immediate instruction.
     """
 
 class Slli(RegImmInstruction, Sll):
     """
-    Args:
-        RegImmInstruction (_type_): _description_
-        Sll (_type_): _description_
+    Shift Left Logical Immediate instruction.
 
     Raises:
         PyAssembleException: _description_
     """
 class Srai(RegImmInstruction, Sra):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        Sra (_type_): _description_
+    Shift Right Arithmetic Immediate instruction.
 
     Raises:
         PyAssembleException: _description_
@@ -228,126 +239,112 @@ class Srai(RegImmInstruction, Sra):
 
 class Srli(RegImmInstruction, Srl):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
-        Srl (_type_): _description_
+    Shift Right Logical Immediate instruction.
 
     Raises:
         PyAssembleException: _description_
     """
 class Slti(RegImmInstruction):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
+    Set Less Than Immediate instruction.
 
     Raises:
         PyAssembleException: _description_
     """
+    #TODO
 class Sltiu(RegImmInstruction):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
+    Set Less Than Immediate Unsigned instruction.
 
     Raises:
         PyAssembleException: _description_
     """
+    #TODO
 
 class Li(RegImmInstruction):
     """
-    _summary_
-
-    Args:
-        AssemblyInstruction (_type_): _description_
+    Load Immediate instruction.
     """
-    def __init__(self, *args):
-        if len(args)!=2:
-            raise PyAssembleException
-        self.rd, self.val = args
+    def __init__(self, rd:AssemblerReg, val:int):
+        super().__init__(rd, None, val)
     def execute(self):
-        Assembler.registers[self.rd] = self.val
+        self.reg1.value = self.reg_num
 
 class Lui(RegImmInstruction):
     """
-    _summary_
-
-    Args:
-        RegImmInstruction (_type_): _description_
+    Load Upper Immediate instruction.
     """
+
+#-----------------------------------------------------------------------
+# Branch Instructions
+#-----------------------------------------------------------------------
 
 class Beq(BranchInstruction):
     """
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Equal instruction.
     """
 
 class Bne(BranchInstruction):
     """
-    _summary_
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Not Equal instruction.
     """
+    func = lambda arg1, arg2: arg1 != arg2
+
 class Blt(BranchInstruction):
     """
-    _summary_
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Less Than instruction.
     """
+    func = lambda arg1, arg2: arg1 < arg2
+
 class Bge(BranchInstruction):
     """
-    _summary_
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Greater Than or Equal instruction.
     """
+    func = lambda arg1, arg2: arg1 >= arg2
+
 class Bltu(BranchInstruction):
     """
-    _summary_
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Less Than Unsigned instruction.
     """
+
 class Bgeu(BranchInstruction):
     """
-    _summary_
-
-    Args:
-        BranchInstruction (_type_): _description_
+    Branch if Greater Than or Equal Unsigned instruction.
     """
+
+#-----------------------------------------------------------------------
+# Memory Instructions
+#-----------------------------------------------------------------------
 
 class Lw(MemInstruction):
     """
-    _summary_
-
-    Args:
-        MemInstruction (_type_): _description_
+    Load Word instruction.
     """
+    def execute(self):
+        self.reg1.value = Assembler.data_memory[self.reg2.value + self.reg_num]
 
 class Sw(MemInstruction):
     """
-    _summary_
-
-    Args:
-        MemInstruction (_type_): _description_
+    Store Word instruction.
     """
+    def execute(self):
+        Assembler.data_memory[self.reg2.value + self.reg_num] = self.reg1.value
+
+#-----------------------------------------------------------------------
+# Jump Instructions
+#-----------------------------------------------------------------------
+
 class Ret(AssemblyInstruction):
     """
-    _summary_
-
-    Args:
-        AssemblyInstruction (_type_): _description_
+    Return instruction.
     """
+    def execute(self):
+        Assembler.pc.jump(Assembler.registers['ra'] - 4)
+    @property
+    def bin(self)->str:
+        pass
 
-
-instructions = {
+instructions:Dict[str, Type[AssemblyInstruction]] = {
     # Reg operations
     'add': Add,
     'sub': Sub,
@@ -387,4 +384,4 @@ instructions = {
 
     # Jump operations
     'ret': Ret
-}  # type: Dict[str, Type[AssemblyInstruction]]
+}
