@@ -1,5 +1,5 @@
 """
-_summary_
+Exceptions raised during working with this package
 """
 class PyAssembleException(Exception):
     """

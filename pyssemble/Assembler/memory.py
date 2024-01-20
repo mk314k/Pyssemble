@@ -1,98 +1,153 @@
 """
-_summary_
-
-Raises:
-    NotImplementedError: _description_
-    NotImplementedError: _description_
-    NotImplementedError: _description_
-
-Returns:
-    _type_: _description_
+Author: mk314k
+This file contains an implementation of hardware memory and ADT for its content.
 """
+from ..utility import num_to_bin
+
 class MemContent:
     """
-    _summary_
+    Abstract class (interface) representing content in memory.
+
+    Methods:
+        bin: Get the binary representation of the content.
+        hex: Get the hexadecimal representation of the content.
+        value: Get the numerical value of the content.
+
+    Raises:
+        NotImplementedError: If the methods are not implemented by the subclass.
     """
-    def binary_rep(self) -> str:
+    @property
+    def bin(self) -> str:
         """
-        _summary_
+        Get the binary representation of the content.
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: If the method is not implemented.
 
         Returns:
-            str: _description_
+            str: Binary representation of the content.
         """
         raise NotImplementedError
 
-    def hex_rep(self) -> str:
+    @property
+    def hex(self) -> str:
         """
-        _summary_
+        Get the hexadecimal representation of the content.
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: If the method is not implemented.
 
         Returns:
-            str: _description_
+            str: Hexadecimal representation of the content.
         """
-        return hex(self.num_value())
+        return hex(self.value)
 
-    def num_value(self) -> int:
+    def __repr__(self)->str:
+        return self.hex
+
+    @property
+    def value(self) -> int:
         """
-        _summary_
+        Get the numerical value of the content.
 
         Raises:
-            NotImplementedError: _description_
+            NotImplementedError: If the method is not implemented.
 
         Returns:
-            int: _description_
+            int: Numerical value of the content.
         """
         raise NotImplementedError
 
-
-def num_to_bin(num: int, bit_length: int = 5) -> str:
-    """
-    _summary_
-
-    Args:
-        num (int): _description_
-        bit_length (int, optional): _description_. Defaults to 5.
-
-    Returns:
-        str: _description_
-    """
-    num_bin = bin(num)[2:]
-    if len(num_bin) < bit_length:
-        num_bin = "0" * (bit_length - len(num_bin)) + num_bin
-    return num_bin
 
 
 class Data(MemContent):
     """
-    _summary_
+    Class representing data in memory.
+
+    Attributes:
+        data (int): Numerical value of the data.
+
+    Methods:
+        value: Get the numerical value of the data.
+        bin: Get the binary representation of the data.
 
     Args:
-        MemContent (_type_): _description_
+        data (int): Numerical value to initialize the data with.
     """
     def __init__(self, data: int):
         self.data = data
 
-    def num_value(self) -> int:
+    @property
+    def value(self) -> int:
         return self.data
 
-    def binary_rep(self) -> str:
+    @property
+    def bin(self) -> str:
         return num_to_bin(self.data, 32)
 
 
 class Memory:
     """
-    _summary_
+    Class representing memory.
+
+    Attributes:
+        memory (dict): Dictionary representing memory contents.
+        head (int): Address to track the current position in memory.
+
+    Methods:
+        get(step=4): Get content from memory and move the head.
+        push(val, step=4): Push content into memory and move the head.
+        __call__(new_head): Set a new value for the head.
+        __getitem__(address): Get content at a specific address.
+        __setitem__(address, value): Set content at a specific address.
+
+    Args:
+        start_addr (int): Starting address for the memory. Defaults to 0.
     """
-    def __init__(self):
+    def __init__(self, start_addr = 0):
         self.memory = {}
+        self.head = start_addr
+
+    def get(self, step = 4):
+        """
+        Get content from memory and move the head.
+
+        Args:
+            step (int, optional): Number of bytes to step. Defaults to 4.
+
+        Returns:
+            Any: Content from memory.
+        """
+        val = self.memory[self.head]
+        self.head += step
+        return val
+
+    def push(self, val, step = 4):
+        """
+        Push content into memory and move the head.
+
+        Args:
+            val (Any): Content to push into memory.
+            step (int, optional): Number of bytes to step. Defaults to 4.
+        """
+        self.memory[self.head] = val
+        self.head += step
+
+    def __call__(self, new_head:int):
+        """
+        Set a new value for the head.
+
+        Args:
+            new_head (int): New value for the head.
+        """
+        self.head = new_head
+
 
     def __getitem__(self, address: int) -> MemContent or None:
         return self.memory.get(address, None)
 
     def __setitem__(self, address: int, value: MemContent) -> None:
         self.memory[address] = value
+
+    def __repr__(self)->str:
+        return self.memory.__repr__() + f" with head at {self.head}"
