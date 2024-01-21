@@ -2,7 +2,7 @@
 _summary_
 """
 from .instruction import *
-from .Assembler.assembler import AssemblerReg
+from .Assembler.assembler import AssemblerReg, Assembler
 from .parser import parse
 
 x0 = zero = AssemblerReg(0)
