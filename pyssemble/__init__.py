@@ -3,7 +3,7 @@ _summary_
 """
 from .instruction import *
 from .Assembler.assembler import AssemblerReg, Assembler
-from .parser import parse
+from .parser import parse as code_from_string
 
 x0 = zero = AssemblerReg(0)
 x1 = ra = AssemblerReg(1)

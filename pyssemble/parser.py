@@ -6,8 +6,8 @@ in one pass here.
 """
 from typing import Union, Dict
 from .instruction import AssemblyInstruction, instructions
-from .Assembler.register import reg_valid
-from .Assembler.assembler import Assembler
+from .assembler.register import reg_valid
+from .assembler.assembler import Assembler
 from .exception import PyAssembleSyntaxException
 
 labels: Dict[str, int] = {}

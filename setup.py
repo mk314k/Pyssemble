@@ -1,3 +1,6 @@
+"""
+Setting up Pyssemble as library
+"""
 from setuptools import setup, find_packages
 
 setup(

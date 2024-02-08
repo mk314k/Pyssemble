@@ -1,5 +1,8 @@
+"""
+Test cases for Pyssemble
+"""
 import unittest
-from Pyssemble import *
+from pyssemble import *
 
 
 class TestReg(unittest.TestCase):
