@@ -7,6 +7,7 @@ Motivated from MIT 6.004 Computation Structures class isa reference handout.
 from typing import Type, Dict
 from .Assembler.memory import MemContent, Data
 from .Assembler.assembler import Assembler, AssemblerReg
+from .utility import num_to_bin
 
 
 class AssemblyInstruction(MemContent):
@@ -88,7 +89,8 @@ class RegImmInstruction(AssemblyInstruction):
 
     @property
     def bin(self)->str:
-        pass
+        reg = self.reg2.bin + self.funct3 + self.reg1.bin
+        return num_to_bin(self.reg_num.value, 12) + reg + self.opcode
 
     def execute(self):
         self.reg1.value = self.func(self.reg2.value, self.reg_num)
@@ -99,9 +101,13 @@ class BranchInstruction(RegImmInstruction):
     It has same initialization structure as ImmInstruction
     label can be considered immediate value
     """
+    opcode = '1100011'
+
     @property
     def bin(self)->str:
-        pass
+        imm = num_to_bin(self.reg_num, 13)
+        return imm[0]+imm[2:8]+self.reg2.bin + self.reg1.bin + self.funct3 + imm[8:12]+imm[1]
+
     def execute(self):
         if self.func(self.reg1.value, self.reg2.value):
             Assembler.pc.jump(self.reg_num)
@@ -120,9 +126,11 @@ class MemInstruction(AssemblyInstruction):
             rs1: Source register.
         """
         super().__init__(rd, rs1, offset)
+
     @property
     def bin(self)->str:
-        pass
+        raise NotImplementedError
+
     def execute(self):
         raise NotImplementedError
 
@@ -187,6 +195,20 @@ class Sll(RegInstruction):
     funct3 = "001"
     func = lambda _, arg1, arg2: arg1 << (arg2 & 0b11111)
 
+class Slt(RegInstruction):
+    """
+    Set Less Than instruction.
+    """
+    funct3 = "010"
+    func = lambda _, arg1, arg2: 1 if arg1 < arg2 else 0
+
+class Sltu(RegInstruction):
+    """
+    Set Less Than Unsigned instruction.
+    """
+    funct3 = "011"
+    func = lambda _, arg1, arg2: 1 if abs(arg1) < abs(arg2) else 0
+
 #-----------------------------------------------------------------------
 # Register Immediate Instructions
 #-----------------------------------------------------------------------
@@ -236,29 +258,29 @@ class Srli(RegImmInstruction, Srl):
     Raises:
         PyAssembleException: _description_
     """
-class Slti(RegImmInstruction):
+class Slti(RegImmInstruction, Slt):
     """
     Set Less Than Immediate instruction.
 
     Raises:
         PyAssembleException: _description_
     """
-    #TODO
-class Sltiu(RegImmInstruction):
+
+class Sltiu(RegImmInstruction, Sltu):
     """
     Set Less Than Immediate Unsigned instruction.
 
     Raises:
         PyAssembleException: _description_
     """
-    #TODO
 
-class Li(RegImmInstruction):
+class Li(RegImmInstruction, Add):
     """
     Load Immediate instruction.
     """
     def __init__(self, rd:AssemblerReg, val:int):
-        super().__init__(rd, None, val)
+        super().__init__(rd, AssemblerReg('x0'), val)
+
     def execute(self):
         self.reg1.value = self.reg_num
 
@@ -266,6 +288,16 @@ class Lui(RegImmInstruction):
     """
     Load Upper Immediate instruction.
     """
+    opcode = "0110111"
+    def __init__(self, rd:AssemblerReg, val:int):
+        super().__init__(rd, None, val)
+
+    @property
+    def bin(self)->str:
+        return num_to_bin(self.reg_num, 20) + self.reg1.bin + self.opcode
+
+    def execute(self):
+        self.reg1.value = self.reg_num << 12
 
 #-----------------------------------------------------------------------
 # Branch Instructions
@@ -275,34 +307,55 @@ class Beq(BranchInstruction):
     """
     Branch if Equal instruction.
     """
+    func = lambda _, arg1, arg2: arg1 == arg2
+    funct3 = '000'
 
 class Bne(BranchInstruction):
     """
     Branch if Not Equal instruction.
     """
+    funct3 = "001"
     func = lambda _, arg1, arg2: arg1 != arg2
+
+class Bgt(BranchInstruction):
+    """
+    Branch if Greater Than instruction.
+    """
+    funct3 = "010"
+    func = lambda _, arg1, arg2: arg1 > arg2
+
+class Ble(BranchInstruction):
+    """
+    Branch if Less Than or Equal to instruction.
+    """
+    funct3 = "011"
+    func = lambda _, arg1, arg2: arg1 <= arg2
 
 class Blt(BranchInstruction):
     """
     Branch if Less Than instruction.
     """
+    funct3 = "100"
     func = lambda _, arg1, arg2: arg1 < arg2
 
 class Bge(BranchInstruction):
     """
     Branch if Greater Than or Equal instruction.
     """
+    funct3 = "101"
     func = lambda _, arg1, arg2: arg1 >= arg2
 
 class Bltu(BranchInstruction):
     """
     Branch if Less Than Unsigned instruction.
     """
+    funct3 ="110"
 
 class Bgeu(BranchInstruction):
     """
     Branch if Greater Than or Equal Unsigned instruction.
     """
+    funct3 = "111"
 
 #-----------------------------------------------------------------------
 # Memory Instructions
@@ -312,6 +365,13 @@ class Lw(MemInstruction):
     """
     Load Word instruction.
     """
+    opcode = "0000011"
+    funct3 = "010"
+    @property
+    def bin(self)->str:
+        reg = self.reg2.bin + self.funct3 + self.reg1.bin
+        return num_to_bin(self.reg_num.value, 12) + reg + self.opcode
+
     def execute(self):
         self.reg1.value = Assembler.data_memory[self.reg2.value + self.reg_num].value
 
@@ -319,6 +379,14 @@ class Sw(MemInstruction):
     """
     Store Word instruction.
     """
+    opcode = "0100011"
+    funct3 = "010"
+    @property
+    def bin(self)->str:
+        imm = num_to_bin(self.reg_num.value, 12)
+        reg = self.reg2.bin + self.reg1.bin + self.funct3
+        return imm[:7] + reg + imm[7:] + self.opcode
+
     def execute(self):
         Assembler.data_memory[self.reg2.value + self.reg_num] = Data(self.reg1.value)
 
@@ -334,7 +402,7 @@ class Ret(AssemblyInstruction):
         Assembler.pc.jump(Assembler.registers['ra'] - 4)
     @property
     def bin(self)->str:
-        pass
+        return '1100' + '0000' * 7
 
 instructions:Dict[str, Type[AssemblyInstruction]] = {
     # Reg operations
@@ -346,6 +414,8 @@ instructions:Dict[str, Type[AssemblyInstruction]] = {
     'sll': Sll,
     'srl': Srl,
     'sra': Sra,
+    'slt': Slt,
+    'sltu': Sltu,
 
     # Reg Immediate Operations
     'addi': Addi,

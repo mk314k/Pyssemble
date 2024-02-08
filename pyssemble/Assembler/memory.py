@@ -45,6 +45,9 @@ class MemContent:
     def __repr__(self)->str:
         return self.hex
 
+    def __str__(self)->str:
+        return self.hex
+
     @property
     def value(self) -> int:
         """
