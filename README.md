@@ -1,6 +1,6 @@
 # Pyssemble
 
-PySsemble is a Python library that allows you to write assembly code and debug it with a Python-like experience. It provides a set of tools for processing and assembling assembly code, as well as a built-in debugger for efficient debugging.
+Pyssemble is a Python library that allows you to write assembly code and debug it with a Python-like experience. It provides a set of tools for processing and assembling assembly code, as well as a built-in debugger for efficient debugging.
 
 ## Features
 
