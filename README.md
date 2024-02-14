@@ -38,7 +38,7 @@ li a1, 10
 add a2, a1, a3
 ret
 """
-parse(program)
+code_from_string(program)
 
 # Execute the program
 Assembler.execute(440)

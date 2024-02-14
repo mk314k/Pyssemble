@@ -5,8 +5,8 @@ Motivated from MIT 6.004 Computation Structures class isa reference handout.
 """
 # pylint: disable=C3001  # Ignore lambda assignment
 from typing import Type, Dict
-from .Assembler.memory import MemContent, Data
-from .Assembler.assembler import Assembler, AssemblerReg
+from .assembler.memory import MemContent, Data
+from .assembler.assembler import Assembler, AssemblerReg
 from .utility import num_to_bin
 
 

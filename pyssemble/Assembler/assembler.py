@@ -24,6 +24,16 @@ class Assembler:
     data_memory = Memory()
     inst_memory = Memory()
     pc = Counter()
+
+    def set_addr(addr = 540): # pylint: disable=no-self-argument
+        """
+        _summary_
+
+        Args:
+            addr (int, optional): _description_. Defaults to 540.
+        """
+        Assembler.inst_memory(addr)
+
     def execute(addr = 540): # pylint: disable=no-self-argument
         """
         Execute instructions starting from the specified address.
@@ -69,7 +79,7 @@ class AssemblerReg:
         elif isinstance(name, str) and reg_valid(name):
             self.__name = name
             if name in reg_map:
-                name = reg_map[name]
+                name = reg_map.get(name)
             self.__index = int(name[1:])
         else:
             raise RegisterIndexError()
