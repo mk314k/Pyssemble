@@ -163,6 +163,8 @@ class RegisterSet:
             ValueError: If the value is not a 32-bit integer.
         """
         index = index if isinstance(index, int) else self.reg_to_index(index)
+        if index == 0:
+            return
         if not isinstance(value, int):
             raise TypeError("Value must be an integer")
 

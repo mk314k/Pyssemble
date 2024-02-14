@@ -2,7 +2,7 @@
 _summary_
 """
 from .instruction import *
-from .Assembler.assembler import AssemblerReg, Assembler
+from .assembler import AssemblerReg, Assembler, reg_map
 from .parser import parse as code_from_string
 
 x0 = zero = AssemblerReg(0)
@@ -37,3 +37,38 @@ x28 = t3 = AssemblerReg(28)
 x29 = t4 = AssemblerReg(29)
 x30 = t5 = AssemblerReg(30)
 x31 = t6 = AssemblerReg(31)
+
+
+class Pyssemble:
+    """
+    _summary_
+    """
+    def __init__(self, start_addr=540):
+        self.initiate(start_addr)
+
+    @staticmethod
+    def initiate(start_addr=540):
+        """
+        _summary_
+
+        Args:
+            start_addr (int, optional): _description_. Defaults to 540.
+        """
+        Assembler.initiate(start_addr)
+        import inspect # pylint: disable=C0415  # Ignore import outside toplevel
+        caller_global = inspect.currentframe().f_back.f_globals
+        for reg, regx in reg_map.items():
+            caller_global[reg] = caller_global[regx] = AssemblerReg(reg)
+        for inst_name, inst in instructions.items():
+            caller_global[inst_name.capitalize()] = inst
+        del caller_global
+
+    @staticmethod
+    def execute(start_addr=540):
+        """
+        _summary_
+
+        Args:
+            start_addr (int, optional): _description_. Defaults to 540.
+        """
+        Assembler.execute(start_addr)
