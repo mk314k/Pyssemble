@@ -1,9 +1,10 @@
 """
-_summary_
+first entry to the library from outside.
 """
 from .instruction import *
 from .assembler import AssemblerReg, Assembler, reg_map
 from .parser import parse as code_from_string
+from .debuger import Debugger
 
 x0 = zero = AssemblerReg(0)
 x1 = ra = AssemblerReg(1)
@@ -41,34 +42,46 @@ x31 = t6 = AssemblerReg(31)
 
 class Pyssemble:
     """
-    _summary_
+    A wrapper for multiple static operations.
     """
-    def __init__(self, start_addr=540):
-        self.initiate(start_addr)
-
     @staticmethod
     def initiate(start_addr=540):
         """
-        _summary_
+        Initiate the library. Export all the registers and instructions.
 
         Args:
-            start_addr (int, optional): _description_. Defaults to 540.
+            start_addr (int, optional): Address for the first instruction. Defaults to 540.
         """
         Assembler.initiate(start_addr)
         import inspect # pylint: disable=C0415  # Ignore import outside toplevel
         caller_global = inspect.currentframe().f_back.f_globals
+
+        # Exporting all registers and instructions
         for reg, regx in reg_map.items():
             caller_global[reg] = caller_global[regx] = AssemblerReg(reg)
         for inst_name, inst in instructions.items():
             caller_global[inst_name.capitalize()] = inst
+
+        # For avoiding accidental data leak
         del caller_global
+
+    @staticmethod
+    def load(code:str):
+        """
+        load code from string. Parsing and storing in memory.
+
+        Args:
+            code (str): code to be parsed
+        """
+        code_from_string(code)
 
     @staticmethod
     def execute(start_addr=540):
         """
-        _summary_
+        Execute the Assembler at the given address and execute till return
 
         Args:
-            start_addr (int, optional): _description_. Defaults to 540.
+            start_addr (int, optional): Address of first instruction 
+                to be executed. Defaults to 540.
         """
         Assembler.execute(start_addr)

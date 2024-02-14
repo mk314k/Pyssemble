@@ -21,11 +21,11 @@ pip install pyssemble
 The examples can be seen in the example folder as notebooks, here's one simple example demonstrating how to use Pyssemble:
 
 ```python
-# Import Registers and Instructions and Assembler
-from pyssemble import *
+from pyssemble import Pyssemble
 
-# Set an address for first instruction
-Assembler.inst_memory(440)
+# Set an address for first instruction and
+# import all registers and instructions
+Pyssemble.initiate(440)
 
 # Write Assembly Program
 Li(a1, 10)
@@ -38,27 +38,29 @@ li a1, 10
 add a2, a1, a3
 ret
 """
-code_from_string(program)
+Pyssemble.load(program)
 
 # Execute the program
-Assembler.execute(440)
+Pyssemble.execute(440)
 
 # Read Values
-print(a1.value, a2.value)
-# Should give 10, 10
+print(a1.value, a2.value) # Should give 10, 10
+
+# For Debugging
+from pyssemble import Debugger
+Debugger.initiate()
+
+# Now you can add print instructions
+Li(a1, 10)
+PrintR(a1)
+Add(a2, a3, a1)
+PrintR(a2)
+Ret()
+
+# Now when executing, we should expect values to be printed
+Pyssemble.execute(440) # Should give 10, 10
+
+# Or we can execute step by step using
+Debugger.step()
+
 ```
-
-<!--
-# # Create a debugger and load the assembled code
-# dbg = debugger.Debugger()
-# dbg.load(assembled_code)
-
-# # Step through the code and print the state at each step
-# while not dbg.is_done():
-#     dbg.step()
-#     print(dbg.get_state())
-
-# # Get the final state
-# final_state = dbg.get_state()
-# print("Final State:", final_state)
--->
