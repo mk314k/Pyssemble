@@ -3,6 +3,7 @@ Author: mk314k
 This file contains an implementation of hardware memory and ADT for its content.
 """
 from ..utility import num_to_bin
+from ..exception import MemoryAddressError
 
 class MemContent:
     """
@@ -147,7 +148,11 @@ class Memory:
 
 
     def __getitem__(self, address: int) -> MemContent or None:
-        return self.memory.get(address, None)
+        data = self.memory.get(address, None)
+        if (data is None):
+            raise MemoryAddressError(f'{address} is an empty location')
+        return data
+
 
     def __setitem__(self, address: int, value: MemContent) -> None:
         self.memory[address] = value

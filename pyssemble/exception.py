@@ -23,3 +23,10 @@ class RegisterIndexError(PyAssembleException):
     Args:
         pyAssembleException (_type_): _description_
     """
+
+class MemoryAddressError(PyAssembleException):
+    """
+
+    Args:
+        PyAssembleException (_type_): _description_
+    """
