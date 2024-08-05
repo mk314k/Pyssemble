@@ -95,6 +95,12 @@ class AssemblerReg:
         """
         return self.__name
 
+    def __str__(self):
+        """
+        Return the value of the register.
+        """
+        return str(self.value)
+
     def __call__(self, val:int|None = None)->int:
         """
         Get or set the value of the register.

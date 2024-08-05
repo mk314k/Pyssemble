@@ -31,6 +31,30 @@ class Debugger:
         Args:
             start_addr (int, optional): Address to start executing from. Defaults to 540.
         """
+    @staticmethod
+    def row_stringify(items, column_width=12):
+        """_summary_
+
+        Args:
+            items (_type_): _description_
+            column_width (int, optional): _description_. Defaults to 12.
+
+        Returns:
+            _type_: _description_
+        """
+        row = ""
+        for item in items:
+            row += f"{str(item):<{column_width}}"
+        return row
+
+    @staticmethod
+    def show_all_regs(col_width=12):
+        """
+        _summary_
+        """
+        # pylint: disable=W0212  # Ignore protected access
+        print(Debugger.row_stringify(Assembler.registers._RegisterSet__registers, col_width))
+        print(Debugger.row_stringify([f'x{i}' for i in range(32)], col_width))
 
 
 class DebugInstruction(AssemblyInstruction):
