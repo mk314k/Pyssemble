@@ -149,7 +149,7 @@ class Memory:
 
     def __getitem__(self, address: int) -> MemContent or None:
         data = self.memory.get(address, None)
-        if (data is None):
+        if (data is None): # pylint: disable=C0325 #if is needed here
             raise MemoryAddressError(f'{address} is an empty location')
         return data
 
